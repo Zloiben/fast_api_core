@@ -1,19 +1,19 @@
 from sqlalchemy.orm import Mapped
 
-from src.model import RequiredIdColumn, SyncModel, AsyncModel
+from src.model import RequiredPrimaryIdColumn, SyncModel, AsyncModel
 
 
-class SyncUser(RequiredIdColumn, SyncModel):
+class SyncUser(RequiredPrimaryIdColumn, SyncModel):
     name: Mapped[str]
 
 
-class AsyncUser(RequiredIdColumn, AsyncModel):
+class AsyncUser(RequiredPrimaryIdColumn, AsyncModel):
     name: Mapped[str]
 
 
-class TestName(RequiredIdColumn, SyncModel):
+class TestName(RequiredPrimaryIdColumn, SyncModel):
     ...
 
 
-class TestNameTwo(RequiredIdColumn, SyncModel):
+class TestNameTwo(RequiredPrimaryIdColumn, SyncModel):
     __tablename__ = 'test_name_2'

@@ -36,7 +36,7 @@ def test_table_exists(tables, inspector):
     """Проверяет, существует ли таблица 'user' в базе данных."""
     tables = inspector.get_table_names()
 
-    assert "user" in tables
+    assert "sync_user" in tables
 
     # Проверка функции преобразования названия класса в название таблицы
     assert "test_name" in tables

@@ -10,7 +10,7 @@ import datetime as dt
 import re
 
 __all__ = (
-    'RequiredIdColumn',
+    'RequiredPrimaryIdColumn',
     'RequiredUpdateAtColumn',
     'RequiredCreateAtColumn',
     'AsyncModel',
@@ -65,7 +65,9 @@ class Model(DeclarativeBase):
             cls,
             *expressions: BinaryExpression,
             load_columns: Optional[List[QueryableAttribute]] = None,
-            order_by: Optional[UnaryExpression] = None
+            order_by: Optional[UnaryExpression] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None
     ) -> Select:
         """Подготавливает запрос для модели."""
         query = select(cls)
@@ -73,6 +75,10 @@ class Model(DeclarativeBase):
             query = query.where(*expressions)
         if load_columns:
             query = query.options(*[selectinload(column) for column in load_columns])
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
         query = query.order_by(order_by)
         return query
 
@@ -139,13 +145,16 @@ class AsyncModel(Model):
             *expressions: BinaryExpression,
             load_columns: Optional[List[QueryableAttribute]] = None,
             order_by: Optional[UnaryExpression] = None,
-            first: bool = False
+            first: bool = False,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None
     ) -> Union[List[Self] | Self]:
         """
         Метод позволяет получить объекты с возможностью отфильтровать
         так же догрузить связи используя load_columns
         """
-        query = cls._prepare_select_query(*expressions, load_columns=load_columns, order_by=order_by)
+        query = cls._prepare_select_query(
+            *expressions, load_columns=load_columns, order_by=order_by, limit=limit, offset=offset)
         result = await session.execute(query)
         if first:
             return result.scalars().first()
@@ -217,13 +226,16 @@ class SyncModel(Model):
             *expressions: BinaryExpression,
             load_columns: Optional[List[QueryableAttribute]] = None,
             order_by: Optional[UnaryExpression] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None,
             first: bool = False
     ) -> Union[List[Self] | Self]:
         """
         Метод позволяет получить объекты с возможностью отфильтровать
         так же догрузить связи используя load_columns
         """
-        query = cls._prepare_select_query(*expressions, load_columns=load_columns, order_by=order_by)
+        query = cls._prepare_select_query(
+            *expressions, load_columns=load_columns, order_by=order_by, limit=limit, offset=offset)
         result = session.execute(query)
         if first:
             return result.scalars().first()
@@ -254,7 +266,7 @@ class SyncModel(Model):
         self._load_relationship(result, *args)
 
 
-class RequiredIdColumn:
+class RequiredPrimaryIdColumn:
     id: Mapped[int] = mapped_column(
         BigInteger,
         primary_key=True,
